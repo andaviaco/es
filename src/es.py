@@ -41,6 +41,10 @@ class ES(object):
             parents = self.select_parents()
             child = self.recombination_discrete(*parents)
 
+            new_population = [*self.population, child]
+
+            child.solution = self.covariance_vector(new_population, len(child.solution))
+            child.fitness = self.fitness(child.solution)
 
     def initialize_population(self, npopulation):
         return [self.create_agent() for i in range(npopulation)]
@@ -65,14 +69,20 @@ class ES(object):
         fitness = self.fitness(solution)
 
         child = Agent(solution, strategy, fitness)
-        print('PARENT 1', parent_1)
-        print('PARENT 2', parent_2)
-        print('CHILD', child)
 
         return child
 
     def recombination_intermediate(self, parent_1, parent_2):
         pass
+
+    def covariance_vector(self, population, size):
+        variances = np.vstack((agent.strategy for agent in population))
+        covariance_matrix = np.cov(variances)
+        diagonal_sum = np.sum(covariance_matrix.diagonal())
+        rand_vector = np.random.normal(0, diagonal_sum, size)
+        rand_vector = self.round_vector(rand_vector)
+
+        return rand_vector
 
     def fitness(self, solution):
         fitness = 1 / (1 + self.fn_eval(solution))
