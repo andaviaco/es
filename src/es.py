@@ -39,6 +39,7 @@ class ES(object):
 
         for ngen in range(self.ngenerations):
             parents = self.select_parents()
+            child = self.recombination_discrete(*parents)
 
 
     def initialize_population(self, npopulation):
@@ -52,6 +53,26 @@ class ES(object):
         parent_2 = self.population[parent_2_index]
 
         return (parent_1, parent_2)
+
+    def recombination_discrete(self, parent_1, parent_2):
+        dim = len(parent_1.solution)
+
+        solution = [parent_1.solution[i] if rand.randint(0, 1) else parent_2.solution[i] for i in range(dim)]
+        strategy = [parent_1.strategy[i] if rand.randint(0, 1) else parent_2.strategy[i] for i in range(dim)]
+
+        solution = self.round_vector(solution)
+        strategy = self.round_vector(strategy)
+        fitness = self.fitness(solution)
+
+        child = Agent(solution, strategy, fitness)
+        print('PARENT 1', parent_1)
+        print('PARENT 2', parent_2)
+        print('CHILD', child)
+
+        return child
+
+    def recombination_intermediate(self, parent_1, parent_2):
+        pass
 
     def fitness(self, solution):
         fitness = 1 / (1 + self.fn_eval(solution))
@@ -78,4 +99,7 @@ class ES(object):
         r = [rand.random() for i in lb]
         solution = lb + (ub - lb) * r
 
-        return np.around(solution, decimals=4)
+        return self.round_vector(solution)
+
+    def round_vector(self, vector):
+        return np.around(vector, decimals=4)
