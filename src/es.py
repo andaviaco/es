@@ -1,6 +1,7 @@
 import numpy as np
 import random as rand
 import pprint as pp
+from operator import itemgetter, attrgetter
 
 class Agent(object):
     """docstring for Agent"""
@@ -35,7 +36,7 @@ class ES(object):
 
     def optimize(self):
         self.population = self.initialize_population(self.npopulation)
-        pp.pprint(self.population)
+        # pp.pprint(self.population)
 
         for ngen in range(self.ngenerations):
             parents = self.select_parents()
@@ -45,6 +46,17 @@ class ES(object):
 
             child.solution = self.covariance_vector(new_population, len(child.solution))
             child.fitness = self.fitness(child.solution)
+
+            inferior_agent_index = self.inferior_agent_index(new_population)
+            del new_population[inferior_agent_index]
+
+            self.population = new_population
+
+        # pp.pprint(self.population)
+        best = self.get_best(self.population)
+
+        return best.solution
+
 
     def initialize_population(self, npopulation):
         return [self.create_agent() for i in range(npopulation)]
@@ -83,6 +95,17 @@ class ES(object):
         rand_vector = self.round_vector(rand_vector)
 
         return rand_vector
+
+    def inferior_agent_index(self, population):
+        fitness_enum = enumerate([agent.fitness for agent in population])
+        index, _ = min(fitness_enum, key=itemgetter(1))
+
+        return index
+
+    def get_best(self, population):
+        best = max(population, key=attrgetter('fitness'))
+
+        return best
 
     def fitness(self, solution):
         fitness = 1 / (1 + self.fn_eval(solution))
