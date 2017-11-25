@@ -37,8 +37,21 @@ class ES(object):
         self.population = self.initialize_population(self.npopulation)
         pp.pprint(self.population)
 
+        for ngen in range(self.ngenerations):
+            parents = self.select_parents()
+
+
     def initialize_population(self, npopulation):
         return [self.create_agent() for i in range(npopulation)]
+
+    def select_parents(self):
+        parent_1_index = self.random_parent_excluding()
+        parent_2_index = self.random_parent_excluding([parent_1_index])
+
+        parent_1 = self.population[parent_1_index]
+        parent_2 = self.population[parent_2_index]
+
+        return (parent_1, parent_2)
 
     def fitness(self, solution):
         fitness = 1 / (1 + self.fn_eval(solution))
@@ -52,6 +65,14 @@ class ES(object):
         agent = Agent(solution, strategy, fitness)
 
         return agent
+
+    def random_parent_excluding(self, excluded_index=[]):
+        available_indexes = set(range(self.npopulation))
+        exclude_set = set(excluded_index)
+        diff = available_indexes - exclude_set
+        selected = rand.choice(list(diff))
+
+        return selected
 
     def random_vector(self, lb, ub):
         r = [rand.random() for i in lb]
